@@ -1,4 +1,5 @@
 # globals.py
 temperature = None
 humidity = None
-light_level = None
+pressure = None
+light_intensity = None

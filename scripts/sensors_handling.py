@@ -5,7 +5,10 @@ import board               # Adafruit library for board configuration
 import busio               # Adafruit library for I2C
 import adafruit_bh1750     # Adafruit BH1750 light sensor library
 from smbus2 import SMBus   # SMBus for compatibility with BME280
-# from globals
+try:
+    from scripts import globals as g  # Gdy skrypt jest używany jako moduł (plik main)
+except ModuleNotFoundError:
+    import globals as g  # Gdy skrypt jest uruchamiany samodzielnie
 
 # Initialize SMBus for BME280
 i2c_bus = SMBus(1)  # Use I2C bus 1
@@ -21,36 +24,29 @@ def get_cpu_temperature():
     output = output.decode()
     return float(output[output.index("=") + 1 : output.rindex("'")])
 
-# factor = 0.9  # Smaller numbers adjust temp down, vice versa
-# smooth_size = 10  # Dampens jitter due to rapid CPU temp changes
-
-# cpu_temps = []
-
-
-# Main loop to read and print sensor values
 def read_sensors_data():
 
     # Read values from BME280
-    temperature = bme280.get_temperature()
-    humidity = bme280.get_humidity()
-    pressure = bme280.get_pressure()
-
-    # cpu_temp = get_cpu_temperature()
-    # cpu_temps.append(cpu_temp)
-
-    # if len(cpu_temps) > smooth_size:
-    #     cpu_temps = cpu_temps[1:]
-
-    # smoothed_cpu_temp = sum(cpu_temps) / float(len(cpu_temps))
-
-    # comp_temp = temperature - ((smoothed_cpu_temp - temperature) / factor)
+    g.temperature = bme280.get_temperature()
+    g.humidity = bme280.get_humidity()
+    g.pressure = bme280.get_pressure()
 
     # Read light intensity from BH1750
-    light_level = bh1750.lux
+    g.light_intensity = bh1750.lux
 
+def print_sensors_data():
     # Print the sensor readings
-    print(f"RAW Temperature: {temperature:.2f}°C") #print(f"RAW Temperature: {temperature:.2f}, Compensated: {comp_temp:05.2f}°C")
-    print(f"Humidity: {humidity:.2f} %")
-    print(f"Pressure: {pressure:.2f} hPa")
-    print(f"Light Level: {light_level:.2f} lux")
+    print(f"Odczyt danych z czujników:")
+    print(f"Temperature: {g.temperature:.2f}°C") #print(f"RAW Temperature: {temperature:.2f}, Compensated: {comp_temp:05.2f}°C")
+    print(f"Humidity: {g.humidity:.2f} %")
+    print(f"Pressure: {g.pressure:.2f} hPa")
+    print(f"Light intesity: {g.light_intensity:.2f} lux")
     print("-" * 30)
+
+if __name__ == "__main__":  
+    cpu_temp = get_cpu_temperature()
+    print(f"Temperatura CPU: {cpu_temp:.2f}")
+    time.sleep(2)
+    read_sensors_data()
+    print_sensors_data()
+    time.sleep(2)
