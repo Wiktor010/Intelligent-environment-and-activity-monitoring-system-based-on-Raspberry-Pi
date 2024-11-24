@@ -1,5 +1,9 @@
 import pymysql
 import matplotlib.pyplot as plt
+try:
+    from scripts import globals as g  # Gdy skrypt jest używany jako moduł (plik main)
+except ModuleNotFoundError:
+    import globals as g  # Gdy skrypt jest uruchamiany samodzielnie
 
 # Zmienne globalne do przechowywania ostatnich danych z bazy
 last_temperature = None
@@ -42,9 +46,9 @@ def update_sensor_data(temperature, pressure, humidity, light_intensity):
     sensor_data["humidity"] = humidity
     sensor_data["light_intensity"] = light_intensity
     print(f"Dane w tablicy zostały zaktualizowane:")
-    for key, value in sensor_data.items():
-        print(f"{key}: {value:.2f}")
-    print("-" * 30)
+    # for key, value in sensor_data.items():
+    #     print(f"{key}: {value:.2f}")
+    # print("-" * 30)
 
 def insert_sensor_data(database_choice):
     
@@ -140,12 +144,14 @@ def fetch_latest_sensor_data(database_choice):
             print(f"Ciśnienie: {last_pressure:.2f} hPa")
             print(f"Wilgotność: {last_humidity:.2f} %")
             print(f"Natężenie światła: {last_light_intensity:.2f} lux")
-            return last_temperature, last_pressure, last_humidity, last_light_intensit
+            return last_temperature, last_pressure, last_humidity, last_light_intensity
         else:
             print("Brak danych w tabeli.")
+            return None, None, None, None
 
     except pymysql.MySQLError as e:
         print(f"Błąd podczas pobierania danych z bazy: {e}")
+        return None, None, None, None
 
     finally:
         if 'connection' in locals() and connection:
@@ -258,7 +264,7 @@ def plot_sensor_data(temperatures, pressures, humidities, light_intensities):
 
 if __name__ == "__main__":
     # Aktualizacja danych w tablicy
-    update_sensor_data(temperature=22.5, pressure=1013, humidity=45, light_intensity=300)
+    update_sensor_data(g.temperature, g.pressure, g.humidity, g.light_intensity)
     
     database_choice = 'test'
 

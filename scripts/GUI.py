@@ -1,4 +1,8 @@
-from sql import fetch_latest_sensor_data
+try:
+    from scripts.sql import fetch_latest_sensor_data
+except ModuleNotFoundError:
+    from sql import fetch_latest_sensor_data
+
 import tkinter as tk
 from tkinter import ttk
 
@@ -10,10 +14,10 @@ def refresh_data():
     temp, press, hum, light = fetch_latest_sensor_data(database_choice)  # Pobranie najnowszych danych
 
     # Aktualizacja etykiet w GUI
-    temperature_label.config(text=f"Temperatura: {temp:.2f} °C" if last_temperature is not None else "Temperatura: Brak danych")
-    pressure_label.config(text=f"Ciśnienie: {press:.2f} hPa" if last_pressure is not None else "Ciśnienie: Brak danych")
-    humidity_label.config(text=f"Wilgotność: {hum:.2f} %" if last_humidity is not None else "Wilgotność: Brak danych")
-    light_intensity_label.config(text=f"Natężenie światła: {light:.2f} lux" if last_light_intensity is not None else "Natężenie światła: Brak danych")
+    temperature_label.config(text=f"Temperatura: {temp:.2f} °C" if temp is not None else "Temperatura: Brak danych")
+    pressure_label.config(text=f"Ciśnienie: {press:.2f} hPa" if press is not None else "Ciśnienie: Brak danych")
+    humidity_label.config(text=f"Wilgotność: {hum:.2f} %" if hum is not None else "Wilgotność: Brak danych")
+    light_intensity_label.config(text=f"Natężenie światła: {light:.2f} lux" if light is not None else "Natężenie światła: Brak danych")
 
 def run_gui():
     """
