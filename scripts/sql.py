@@ -140,6 +140,7 @@ def fetch_latest_sensor_data(database_choice):
             print(f"Ciśnienie: {last_pressure:.2f} hPa")
             print(f"Wilgotność: {last_humidity:.2f} %")
             print(f"Natężenie światła: {last_light_intensity:.2f} lux")
+            return last_temperature, last_pressure, last_humidity, last_light_intensit
         else:
             print("Brak danych w tabeli.")
 
