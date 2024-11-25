@@ -8,3 +8,5 @@ __pycache__/
 # Ignore system files
 .DS_Store
 .vscode/
+
+# Ignore main.py to avoid merge conflicts
