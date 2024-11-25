@@ -1,23 +1,28 @@
+import tkinter as tk            #Add librabry for GUI
+from tkinter import ttk
 try:
     from scripts.sql import fetch_latest_sensor_data
 except ModuleNotFoundError:
     from sql import fetch_latest_sensor_data
 
-import tkinter as tk
-from tkinter import ttk
+try:
+    import scripts.globals as g
+except ModuleNotFoundError:
+    import globals as g
+
 
 def refresh_data():
     """
     Aktualizuje dane w GUI na podstawie najnowszych wartości z bazy danych.
     """
     database_choice = 'test'  # Wybór bazy danych
-    temp, press, hum, light = fetch_latest_sensor_data(database_choice)  # Pobranie najnowszych danych
+    fetch_latest_sensor_data(database_choice)  # Pobranie najnowszych danych
 
     # Aktualizacja etykiet w GUI
-    temperature_label.config(text=f"Temperatura: {temp:.2f} °C" if temp is not None else "Temperatura: Brak danych")
-    pressure_label.config(text=f"Ciśnienie: {press:.2f} hPa" if press is not None else "Ciśnienie: Brak danych")
-    humidity_label.config(text=f"Wilgotność: {hum:.2f} %" if hum is not None else "Wilgotność: Brak danych")
-    light_intensity_label.config(text=f"Natężenie światła: {light:.2f} lux" if light is not None else "Natężenie światła: Brak danych")
+    temperature_label.config(text=f"Temperatura: {g.db_temperature:.2f} °C" if g.db_temperature is not None else "Temperatura: Brak danych")
+    pressure_label.config(text=f"Ciśnienie: {g.db_pressure:.2f} hPa" if g.db_pressure is not None else "Ciśnienie: Brak danych")
+    humidity_label.config(text=f"Wilgotność: {g.db_humidity:.2f} %" if g.db_humidity is not None else "Wilgotność: Brak danych")
+    light_intensity_label.config(text=f"Natężenie światła: {g.db_light_intensity:.2f} lux" if g.db_light_intensity is not None else "Natężenie światła: Brak danych")
 
 def run_gui():
     """

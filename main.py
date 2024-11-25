@@ -12,7 +12,7 @@ if __name__ == "__main__":
         read_sensors_data()
         print_sensors_data()
         # # Wait a few seconds before reading again
-        update_sensor_data(g.temperature, g.pressure, g.humidity, g.light_intensity)
+        update_sensor_data(g.sensor_temperature, g.sensor_pressure, g.sensor_humidity, g.sensor_light_intensity)
         insert_sensor_data('test')
         time.sleep(5)
     

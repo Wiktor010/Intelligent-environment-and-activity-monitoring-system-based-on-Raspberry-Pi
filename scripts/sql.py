@@ -1,26 +1,12 @@
 import pymysql
 import matplotlib.pyplot as plt
 try:
-    from scripts import globals as g  # Gdy skrypt jest używany jako moduł (plik main)
+    from scripts import globals as g  # When script is used as module (eg. in main.py file)
 except ModuleNotFoundError:
-    import globals as g  # Gdy skrypt jest uruchamiany samodzielnie
+    import globals as g  # When scirpt is running alone
 
-# Zmienne globalne do przechowywania ostatnich danych z bazy
-last_temperature = None
-last_pressure = None
-last_humidity = None
-last_light_intensity = None
-
-
-# Definicje połączeń dla różnych baz danych
+# Dictionary with defined databases to work with
 databases = {
-    'production': {
-        'host': 'LAPTOP-809K11E',
-        'user': 'Wiktor',
-        'password': 'Wiktor123123',
-        'port': 3306,
-        'database': 'data'
-    },
     'test': {
         'host': 'localhost',
         'user': 'raspberry',
@@ -109,8 +95,6 @@ def fetch_latest_sensor_data(database_choice):
     Pobiera najnowszy wiersz z tabeli `sensor_data` w wybranej bazie danych 
     i zapisuje dane do zmiennych globalnych.
     """
-    global last_temperature, last_pressure, last_humidity, last_light_intensity
-
     db_config = databases.get(database_choice)
     if db_config is None:
         print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
@@ -134,24 +118,22 @@ def fetch_latest_sensor_data(database_choice):
         latest_row = cursor.fetchone()
         if latest_row:
             # Przypisanie wartości do zmiennych globalnych
-            last_temperature = latest_row[0]
-            last_pressure = latest_row[1]
-            last_humidity = latest_row[2]
-            last_light_intensity = latest_row[3]
+            g.db_temperature = latest_row[0]
+            g.db_pressure = latest_row[1]
+            g.db_humidity = latest_row[2]
+            g.db_light_intensity = latest_row[3]
 
             print("Najnowsze dane z bazy zostały zapisane w zmiennych:")
-            print(f"Temperatura: {last_temperature:.2f} °C")
-            print(f"Ciśnienie: {last_pressure:.2f} hPa")
-            print(f"Wilgotność: {last_humidity:.2f} %")
-            print(f"Natężenie światła: {last_light_intensity:.2f} lux")
-            return last_temperature, last_pressure, last_humidity, last_light_intensity
+            print(f"Temperatura: {g.db_temperature:.2f} °C")
+            print(f"Ciśnienie: {g.db_pressure:.2f} hPa")
+            print(f"Wilgotność: {g.db_humidity:.2f} %")
+            print(f"Natężenie światła: {g.db_light_intensity:.2f} lux")
+
         else:
             print("Brak danych w tabeli.")
-            return None, None, None, None
 
     except pymysql.MySQLError as e:
         print(f"Błąd podczas pobierania danych z bazy: {e}")
-        return None, None, None, None
 
     finally:
         if 'connection' in locals() and connection:

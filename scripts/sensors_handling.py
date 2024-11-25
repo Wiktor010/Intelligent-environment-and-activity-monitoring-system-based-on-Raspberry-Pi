@@ -6,9 +6,9 @@ import busio               # Adafruit library for I2C
 import adafruit_bh1750     # Adafruit BH1750 light sensor library
 from smbus2 import SMBus   # SMBus for compatibility with BME280
 try:
-    from scripts import globals as g  # Gdy skrypt jest używany jako moduł (plik main)
+    from scripts import globals as g  # When script is used as module (eg. in main.py file)
 except ModuleNotFoundError:
-    import globals as g  # Gdy skrypt jest uruchamiany samodzielnie
+    import globals as g  # When scirpt is running alone
 
 # Initialize SMBus for BME280
 i2c_bus = SMBus(1)  # Use I2C bus 1
@@ -25,22 +25,21 @@ def get_cpu_temperature():
     return float(output[output.index("=") + 1 : output.rindex("'")])
 
 def read_sensors_data():
-
     # Read values from BME280
-    g.temperature = bme280.get_temperature()
-    g.humidity = bme280.get_humidity()
-    g.pressure = bme280.get_pressure()
+    g.sensor_temperature = bme280.get_temperature()
+    g.sensor_humidity = bme280.get_humidity()
+    g.sensor_pressure = bme280.get_pressure()
 
     # Read light intensity from BH1750
-    g.light_intensity = bh1750.lux
+    g.sensor_light_intensity = bh1750.lux
 
 def print_sensors_data():
     # Print the sensor readings
     print(f"Odczyt danych z czujników:")
-    print(f"Temperature: {g.temperature:.2f}°C") #print(f"RAW Temperature: {temperature:.2f}, Compensated: {comp_temp:05.2f}°C")
-    print(f"Humidity: {g.humidity:.2f} %")
-    print(f"Pressure: {g.pressure:.2f} hPa")
-    print(f"Light intesity: {g.light_intensity:.2f} lux")
+    print(f"Temperature: {g.sensor_temperature:.2f}°C") 
+    print(f"Humidity: {g.sensor_humidity:.2f} %")
+    print(f"Pressure: {g.sensor_pressure:.2f} hPa")
+    print(f"Light intesity: {g.sensor_light_intensity:.2f} lux")
     print("-" * 30)
 
 if __name__ == "__main__":  
