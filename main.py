@@ -14,21 +14,21 @@ i2c = busio.I2C(board.SCL, board.SDA)
 bh1750 = adafruit_bh1750.BH1750(i2c)
 
 # Main loop to read and print sensor values
-while True:
-    # Read values from BME280
-    temperature = bme280.get_temperature()
-    humidity = bme280.get_humidity()
-    pressure = bme280.get_pressure()
+# while True:
+#     # Read values from BME280
+#     temperature = bme280.get_temperature()
+#     humidity = bme280.get_humidity()
+#     pressure = bme280.get_pressure()
 
-    # Read light intensity from BH1750
-    light_level = bh1750.lux
+#     # Read light intensity from BH1750
+#     light_level = bh1750.lux
 
-    # Print the sensor readings
-    print(f"Temperature: {temperature:.2f} °C")
-    print(f"Humidity: {humidity:.2f} %")
-    print(f"Pressure: {pressure:.2f} hPa")
-    print(f"Light Level: {light_level:.2f} lux")
-    print("-" * 30)
+#     # Print the sensor readings
+#     print(f"Temperature: {temperature:.2f} °C")
+#     print(f"Humidity: {humidity:.2f} %")
+#     print(f"Pressure: {pressure:.2f} hPa")
+#     print(f"Light Level: {light_level:.2f} lux")
+#     print("-" * 30)
 
-    # Wait a few seconds before reading again
-    time.sleep(2)
+#     # Wait a few seconds before reading again
+#     time.sleep(2)
