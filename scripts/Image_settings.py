@@ -23,9 +23,9 @@ class PiCameraDisplay:
 
     def stop(self):
         self.camera.close()
-
-# Tworzenie obiektu klasy PiCameraDisplay i uruchomienie wyświetlania
-camera_display = PiCameraDisplay()
-camera_display.display_feed()
-camera_display.stop()
+if __name__ == "__main__":
+    # Tworzenie obiektu klasy PiCameraDisplay i uruchomienie wyświetlania
+    camera_display = PiCameraDisplay()
+    camera_display.display_feed()
+    camera_display.stop()
 
