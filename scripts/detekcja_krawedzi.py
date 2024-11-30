@@ -1,36 +1,26 @@
 import cv2
 from picamera2 import Picamera2
+from PIL import Image, ImageTk
 import time
 
 class PiCameraDisplay:
     def __init__(self, resolution=(640, 480), framerate=40):
         self.camera = Picamera2()
-        
         video_config = self.camera.create_video_configuration(main={"size": resolution})
         self.camera.configure(video_config)
         self.camera.set_controls({"FrameRate": framerate})
         self.camera.start()
-        time.sleep(0.1)
+        time.sleep(0.1)  # Czas na rozruch kamery
 
-    def display_feed(self):
-        while True:
-            image = self.camera.capture_array()
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-            
-            # Konwersja do odcieni szarości (przydatne do detekcji krawędzi)
-            gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-            
-            # Detekcja krawędzi przy użyciu algorytmu Canny'ego
-            edges = cv2.Canny(gray_image, 100, 200)
-            
-            # Wyświetlenie wyników detekcji krawędzi
-            cv2.imshow("Raspberry Pi Camera - Edge Detection", edges)
-            
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        cv2.destroyAllWindows()
+    def get_processed_frame(self):
+        """Pobiera klatkę, przetwarza ją (detekcja krawędzi) i zwraca."""
+        image = self.camera.capture_array()
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(gray_image, 100, 200)  # Detekcja krawędzi
+        return edges
 
     def stop(self):
+        """Zatrzymuje kamerę."""
         self.camera.close()
         
 if __name__ == "__main__":

@@ -122,12 +122,12 @@ def fetch_latest_sensor_data(database_choice):
             g.db_pressure = latest_row[1]
             g.db_humidity = latest_row[2]
             g.db_light_intensity = latest_row[3]
-
-            print("Najnowsze dane z bazy zostały zapisane w zmiennych:")
-            print(f"Temperatura: {g.db_temperature:.2f} °C")
-            print(f"Ciśnienie: {g.db_pressure:.2f} hPa")
-            print(f"Wilgotność: {g.db_humidity:.2f} %")
-            print(f"Natężenie światła: {g.db_light_intensity:.2f} lux")
+            if __name__ == "__main__":
+                print("Najnowsze dane z bazy zostały zapisane w zmiennych:")
+                print(f"Temperatura: {g.db_temperature:.2f} °C")
+                print(f"Ciśnienie: {g.db_pressure:.2f} hPa")
+                print(f"Wilgotność: {g.db_humidity:.2f} %")
+                print(f"Natężenie światła: {g.db_light_intensity:.2f} lux")
 
         else:
             print("Brak danych w tabeli.")
@@ -162,7 +162,7 @@ def fetch_all_sensor_data(database_choice):
         cursor = connection.cursor()
 
         # Pobranie wszystkich danych
-        sql_query = "SELECT temperature, pressure, humidity, light_intensity FROM sensor_data"
+        sql_query = "SELECT temperature, pressure, humidity, light_intensity, timestamp FROM sensor_data"
         cursor.execute(sql_query)
         rows = cursor.fetchall()
 
@@ -172,75 +172,76 @@ def fetch_all_sensor_data(database_choice):
             pressures = [row[1] for row in rows]
             humidities = [row[2] for row in rows]
             light_intensities = [row[3] for row in rows]
+            timestamps = [row[4] for row in rows]
 
             print("Dane zostały pomyślnie pobrane z bazy danych.")
-            return temperatures, pressures, humidities, light_intensities
+            return temperatures, pressures, humidities, light_intensities, timestamps
         else:
             print("Brak danych w tabeli.")
-            return None, None, None, None
+            return None, None, None, None, None
 
     except pymysql.MySQLError as e:
         print(f"Błąd podczas pobierania danych z bazy: {e}")
-        return None, None, None, None
+        return None, None, None, None, None
 
     finally:
         if 'connection' in locals() and connection:
             connection.close()
 
 
-def plot_sensor_data(temperatures, pressures, humidities, light_intensities):
-    """
-    Rysuje wykresy dla temperatury, ciśnienia, wilgotności i natężenia światła
-    na podstawie przekazanych danych.
-    """
-    if not any([temperatures, pressures, humidities, light_intensities]):
-        print("Brak danych do wyświetlenia wykresów.")
-        return
+# def plot_sensor_data(temperatures, pressures, humidities, light_intensities):
+#     """
+#     Rysuje wykresy dla temperatury, ciśnienia, wilgotności i natężenia światła
+#     na podstawie przekazanych danych.
+#     """
+#     if not any([temperatures, pressures, humidities, light_intensities]):
+#         print("Brak danych do wyświetlenia wykresów.")
+#         return
 
-    # Indeksy pomiarów
-    indices = list(range(1, len(temperatures) + 1))
+#     # Indeksy pomiarów
+#     indices = list(range(1, len(temperatures) + 1))
 
-    # Rysowanie wykresów
-    plt.figure(figsize=(12, 10))
+#     # Rysowanie wykresów
+#     plt.figure(figsize=(12, 10))
 
-    if temperatures:
-        plt.subplot(2, 2, 1)
-        plt.plot(indices, temperatures, marker='o', label="Temperatura (°C)", color='red')
-        plt.title("Temperatura")
-        plt.xlabel("Pomiar")
-        plt.ylabel("Temperatura (°C)")
-        plt.grid(True)
-        plt.legend()
+#     if temperatures:
+#         plt.subplot(2, 2, 1)
+#         plt.plot(indices, temperatures, marker='o', label="Temperatura (°C)", color='red')
+#         plt.title("Temperatura")
+#         plt.xlabel("Pomiar")
+#         plt.ylabel("Temperatura (°C)")
+#         plt.grid(True)
+#         plt.legend()
 
-    if pressures:
-        plt.subplot(2, 2, 2)
-        plt.plot(indices, pressures, marker='o', label="Ciśnienie (hPa)", color='blue')
-        plt.title("Ciśnienie")
-        plt.xlabel("Pomiar")
-        plt.ylabel("Ciśnienie (hPa)")
-        plt.grid(True)
-        plt.legend()
+#     if pressures:
+#         plt.subplot(2, 2, 2)
+#         plt.plot(indices, pressures, marker='o', label="Ciśnienie (hPa)", color='blue')
+#         plt.title("Ciśnienie")
+#         plt.xlabel("Pomiar")
+#         plt.ylabel("Ciśnienie (hPa)")
+#         plt.grid(True)
+#         plt.legend()
 
-    if humidities:
-        plt.subplot(2, 2, 3)
-        plt.plot(indices, humidities, marker='o', label="Wilgotność (%)", color='green')
-        plt.title("Wilgotność")
-        plt.xlabel("Pomiar")
-        plt.ylabel("Wilgotność (%)")
-        plt.grid(True)
-        plt.legend()
+#     if humidities:
+#         plt.subplot(2, 2, 3)
+#         plt.plot(indices, humidities, marker='o', label="Wilgotność (%)", color='green')
+#         plt.title("Wilgotność")
+#         plt.xlabel("Pomiar")
+#         plt.ylabel("Wilgotność (%)")
+#         plt.grid(True)
+#         plt.legend()
 
-    if light_intensities:
-        plt.subplot(2, 2, 4)
-        plt.plot(indices, light_intensities, marker='o', label="Natężenie światła (lux)", color='orange')
-        plt.title("Natężenie światła")
-        plt.xlabel("Pomiar")
-        plt.ylabel("Natężenie światła (lux)")
-        plt.grid(True)
-        plt.legend()
+#     if light_intensities:
+#         plt.subplot(2, 2, 4)
+#         plt.plot(indices, light_intensities, marker='o', label="Natężenie światła (lux)", color='orange')
+#         plt.title("Natężenie światła")
+#         plt.xlabel("Pomiar")
+#         plt.ylabel("Natężenie światła (lux)")
+#         plt.grid(True)
+#         plt.legend()
 
-    plt.tight_layout()
-    plt.show()
+#     plt.tight_layout()
+#     plt.show()
 
 
 
