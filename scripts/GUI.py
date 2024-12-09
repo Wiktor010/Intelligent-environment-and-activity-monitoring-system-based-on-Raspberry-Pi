@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('TkAgg')  # Backend kompatybilny z Tkinter
 from PIL import Image, ImageTk, ImageDraw
 from detekcja_krawedzi import PiCameraDisplay
+from stream_5 import PiCameraDisplay
 try:
     from scripts.sql import fetch_latest_sensor_data, fetch_all_sensor_data
 except ModuleNotFoundError:

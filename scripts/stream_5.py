@@ -168,7 +168,7 @@ class PiCameraDisplay:
         self.camera.close()
         print("Camera stopped.")
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     # Tworzenie obiektu klasy PiCameraDisplay i uruchomienie wyświetlania
     camera_display = PiCameraDisplay()
     camera_display.display_feed()
