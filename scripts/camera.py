@@ -143,3 +143,38 @@ class PiCameraDisplay:
     def stop(self):
         self.camera.close()
         print("Camera stopped.")
+
+    def get_processed_frame(self):
+        """Zwraca klatkę z przetwarzaniem (analiza ruchu, śledzenie itp.)."""
+        image = self.camera.capture_array()
+        image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        gray_image = cv2.cvtColor(image_rgb, cv2.COLOR_BGR2GRAY)
+
+        # Analiza tła i śledzenie obiektu
+        if not self.tracking_started:
+            fg_mask = self.bg_subtractor.apply(gray_image)
+            kernel = np.ones((3, 3), np.uint8)
+            fg_mask = cv2.morphologyEx(fg_mask, cv2.MORPH_CLOSE, kernel)
+            contours, _ = cv2.findContours(fg_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+            for contour in contours:
+                if cv2.contourArea(contour) > 500:
+                    (x, y, w, h) = cv2.boundingRect(contour)
+                    aspect_ratio = h / float(w)
+                    if 1.2 < aspect_ratio < 5.0:
+                        roi = (x, y, w, h)
+                        self.tracker.init(image_rgb, roi)
+                        self.tracking_started = True
+                        break
+
+        if self.tracking_started:
+            success, bbox = self.tracker.update(image_rgb)
+            if success:
+                (x, y, w, h) = [int(v) for v in bbox]
+                cv2.rectangle(image_rgb, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(image_rgb, "Person being tracked", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+            else:
+                self.tracking_started = False
+                self.tracker = cv2.TrackerKCF_create()
+
+        return image_rgb
