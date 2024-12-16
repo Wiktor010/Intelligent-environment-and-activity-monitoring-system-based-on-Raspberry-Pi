@@ -122,22 +122,18 @@ class SensorApp:
         if self.camera_display is not None:
             try:
                 frame = self.camera_display.get_processed_frame()
-                if frame is None:
-                    raise ValueError("Klatka kamery jest pusta")
-                img = ImageTk.PhotoImage(Image.fromarray(frame))
+                if frame is not None:
+                    img = ImageTk.PhotoImage(Image.fromarray(frame))
+                    self.camera_label.imgtk = img
+                    self.camera_label.configure(image=img)
             except Exception as e:
-                print(f"Brak obrazu z kamery: {e}")
+                print(f"Błąd kamery: {e}")
                 img = self.create_placeholder_image()
-        else:
-            # Twórz obraz zastępczy, jeśli kamera nie działa
-            img = self.create_placeholder_image()
+                self.camera_label.imgtk = img
+                self.camera_label.configure(image=img)
 
-        # Wyświetlenie obrazu lub placeholdera
-        self.camera_label.imgtk = img
-        self.camera_label.configure(image=img)
-
-        # Zaplanowanie kolejnej aktualizacji
-        self.root.after(30, self.update_camera)
+        # Zaplanuj kolejną aktualizację po 100 ms
+        self.root.after(100, self.update_camera)
 
     def create_placeholder_image(self):
         # Tworzenie pustego obrazu (szary prostokąt jako placeholder)
