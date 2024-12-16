@@ -17,14 +17,17 @@ class Sensors:
         self.i2c_bus = SMBus(1)
         self.i2c_bh = busio.I2C(board.SCL, board.SDA)
 
-        # self.bme280 = BME280(i2c_dev = self.i2c_bus)
-        self.bh1750 = adafruit_bh1750.BH1750(self.i2c_bh)
+        try:
+            self.bme280 = BME280(i2c_dev = self.i2c_bus)
+        except Exception as e:
+            print(f"BME280 module not found on I2C bus")
+            self.bme280 = None
 
-        # # Variables to store sensor data
-        # self.sensor_temperature = None
-        # self.sensor_humidity = None
-        # self.sensor_pressure = None
-        # self.sensor_light_intensity = None
+        try:
+            self.bh1750 = adafruit_bh1750.BH1750(self.i2c_bh)
+        except Exception as e:
+            print(f"BH1750 module not found on I2C bus")
+            self.bh1750 = None
 
     def get_cpu_temperature(self):
         process = Popen(["vcgencmd", "measure_temp"], stdout=PIPE)
@@ -34,20 +37,31 @@ class Sensors:
 
     def read_sensors_data(self):
         # Read values from BME280
-        # g.sensor_temperature = self.bme280.get_temperature()
-        # g.sensor_humidity = self.bme280.get_humidity()
-        # g.sensor_pressure = self.bme280.get_pressure()
+        if self.bme280 is not None:
+            g.sensor_temperature = self.bme280.get_temperature()
+            g.sensor_humidity = self.bme280.get_humidity()
+            g.sensor_pressure = self.bme280.get_pressure()
+        else:
+            None
 
         # Read light intensity from BH1750
-        g.sensor_light_intensity = self.bh1750.lux
+        if self.bh1750 is not None:
+            g.sensor_light_intensity = self.bh1750.lux
+        else:
+            None
 
     def print_sensors_data(self):
         # Print all sensor data
         print(f"Odczyt danych z czujników:")
-        # print(f"Temperature: {g.sensor_temperature:.2f}°C")
-        # print(f"Humidity: {g.sensor_humidity:.2f} %")
-        # print(f"Pressure: {g.sensor_pressure:.2f} hPa")
-        print(f"Light intensity: {g.sensor_light_intensity:.2f} lux")
+        
+        if self.bme280 is not None:
+            print(f"Temperature: {g.sensor_temperature:.2f}°C")
+            print(f"Humidity: {g.sensor_humidity:.2f} %")
+            print(f"Pressure: {g.sensor_pressure:.2f} hPa")
+        
+        if self.bh1750 is not None:
+            print(f"Light intensity: {g.sensor_light_intensity:.2f} lux")
+        
         print("-" * 30)
 
 if __name__ == "__main__":  

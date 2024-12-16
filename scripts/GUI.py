@@ -24,14 +24,17 @@ class SensorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Sensor App")
-        self.root.geometry("1920x1080")  # Ustawia rozmiar okna (szerokość x wysokość)
+        # self.root.geometry("1920x1080")  # Ustawia rozmiar okna (szerokość x wysokość)
+        self.root.attributes('-fullscreen', True)
 
         # Notebook (zakładki)
         self.notebook = ttk.Notebook(root)
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
-        self.notebook.add(self.tab1, text="Dane i Kamera")
-        self.notebook.add(self.tab2, text="Wykresy")
+        self.tab3 = ttk.Frame(self.notebook)
+        self.notebook.add(self.tab1, text = "Dane i Kamera")
+        self.notebook.add(self.tab2, text = "Wykresy")
+        self.notebook.add(self.tab3, text = "Analiza nagrań audio")
         self.notebook.pack(expand=True, fill="both")
 
         # Zakładka 1: Dane i kamera
@@ -40,12 +43,20 @@ class SensorApp:
         # Zakładka 2: Wykresy
         self.setup_tab2()
 
+        # Zakładka 3: analiza audio
+        # self.setup_tab3()
         # Utwórz instancję klasy kamery
         try:
             self.camera_display = PiCameraDisplay()
         except Exception as e:
             print(f"Nie można zainicjować kamery: {e}")
             self.camera_display = None  # Ustaw na None, jeśli kamera nie jest dostępna
+
+        # try:
+        #     self.microphone = microphone()
+        # except Exception as e:
+        #     print(f"Nie znaleziono mikrofonu")
+        #     self.microphone = None
 
         # Uruchom aktualizację danych co 15 sekund
         self.update_data()
@@ -55,6 +66,12 @@ class SensorApp:
         self.data_frame = tk.Frame(self.tab1)
         self.data_frame.pack(side="left", padx=15, pady=15)
 
+        for i in range(2):
+            self.data_frame.columnconfigure(2, weight = 1, uniform = "col")
+        
+        for i in range(4):
+            self.data_frame.rowconfigure(i, weight = 1, uniform = "row")
+        
         # Ikony i etykiety dla danych
         self.icons = {
             "temperatura": ImageTk.PhotoImage(Image.open("icons/thermometer.png").resize((100, 100))),
@@ -62,6 +79,7 @@ class SensorApp:
             "wilgotnosc": ImageTk.PhotoImage(Image.open("icons/humidity.png").resize((100, 100))),
             "natezenie_swiatla": ImageTk.PhotoImage(Image.open("icons/light_intensity.png").resize((100, 100))),
         }
+
         self.labels = {}
         for i, key in enumerate(["temperatura", "cisnienie", "wilgotnosc", "natezenie_swiatla"]):
             tk.Label(self.data_frame, image=self.icons[key]).grid(row=i, column=0, padx=5, pady=5)
@@ -73,6 +91,9 @@ class SensorApp:
         self.camera_frame.pack(side="right", padx=15, pady=15)
         self.camera_label = tk.Label(self.camera_frame)
         self.camera_label.pack()
+
+        # Closing GUI button
+        tk.Button(self.data_frame, text = "Zamknij", font = ("Arial", 12), command = self.root.destroy).pack(side = "bottom", padx = (20, 20), pady = 20)
 
     def setup_tab2(self):
         # Ustawienia figury i os
