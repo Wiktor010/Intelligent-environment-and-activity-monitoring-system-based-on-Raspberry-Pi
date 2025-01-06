@@ -1,9 +1,9 @@
 import pymysql
 import matplotlib.pyplot as plt
 try:
-    from scripts import globals as g  # When script is used as module (eg. in main.py file)
+    from scripts.globals import Globals  # When script is used as module (eg. in main.py file)
 except ModuleNotFoundError:
-    import globals as g  # When scirpt is running alone
+    from globals import Globals  # When scirpt is running alone
 
 # Dictionary with defined databases to work with
 databases = {
@@ -27,12 +27,13 @@ class SensorDataHandler:
             "humidity": None,
             "light_intensity": None,
         }
+        self.global_instance = Globals()
 
-    def update_sensor_data(self, temperature, pressure, humidity, light_intensity):
-        self.sensor_data["temperature"] = temperature
-        self.sensor_data["pressure"] = pressure
-        self.sensor_data["humidity"] = humidity
-        self.sensor_data["light_intensity"] = light_intensity
+    def update_sensor_data(self):
+        self.sensor_data["temperature"] = self.global_instance.sensor_temperature
+        self.sensor_data["pressure"] = self.global_instance.sensor_pressure
+        self.sensor_data["humidity"] = self.global_instance.sensor_humidity
+        self.sensor_data["light_intensity"] = self.global_instance.sensor_light_intensity
         print(f"Dane w tablicy zostały zaktualizowane:")
         for key, value in self.sensor_data.items():
             if value is not None:
@@ -48,6 +49,7 @@ class SensorDataHandler:
             return
 
         try:
+            self.update_sensor_data()
             # Connect to the database
             connection = pymysql.connect(
                 host = self.db_config['host'],
@@ -108,6 +110,7 @@ class SensorDataHandler:
 
             if latest_row:
                 self.sensor_data["temperature"] = latest_row[0]
+
                 self.sensor_data["pressure"] = latest_row[1]
                 self.sensor_data["humidity"] = latest_row[2]
                 self.sensor_data["light_intensity"] = latest_row[3]
@@ -168,71 +171,65 @@ class SensorDataHandler:
         finally:
             if 'connection' in locals() and connection:
                 connection.close()
+                
+    def fetch_sensor_data_by_date(self, database_choice, start_date, end_date):
+        global databases
+        self.db_config = databases.get(database_choice)
+        if self.db_config is None:
+            print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
+            return None, None, None, None, None
 
+        try:
+            connection = pymysql.connect(
+                host=self.db_config['host'],
+                user=self.db_config['user'],
+                password=self.db_config['password'],
+                db=self.db_config['database'],
+                port=self.db_config['port']
+            )
 
-# def plot_sensor_data(temperatures, pressures, humidities, light_intensities):
-#     """
-#     Rysuje wykresy dla temperatury, ciśnienia, wilgotności i natężenia światła
-#     na podstawie przekazanych danych.
-#     """
-#     if not any([temperatures, pressures, humidities, light_intensities]):
-#         print("Brak danych do wyświetlenia wykresów.")
-#         return
+            cursor = connection.cursor()
+            sql_query = (
+                "SELECT temperature, pressure, humidity, light_intensity, timestamp "
+                "FROM sensor_data "
+                "WHERE timestamp BETWEEN %s AND %s"
+            )
+            cursor.execute(sql_query, (start_date, end_date))
+            rows = cursor.fetchall()
 
-#     # Indeksy pomiarów
-#     indices = list(range(1, len(temperatures) + 1))
+            if rows:
+                temperatures = [row[0] for row in rows]
+                pressures = [row[1] for row in rows]
+                humidities = [row[2] for row in rows]
+                light_intensities = [row[3] for row in rows]
+                timestamps = [row[4] for row in rows]
 
-#     # Rysowanie wykresów
-#     plt.figure(figsize=(12, 10))
+                print("Dane zostały pomyślnie pobrane z bazy danych.")
+                return temperatures, pressures, humidities, light_intensities, timestamps
 
-#     if temperatures:
-#         plt.subplot(2, 2, 1)
-#         plt.plot(indices, temperatures, marker='o', label="Temperatura (°C)", color='red')
-#         plt.title("Temperatura")
-#         plt.xlabel("Pomiar")
-#         plt.ylabel("Temperatura (°C)")
-#         plt.grid(True)
-#         plt.legend()
+            else:
+                print("Brak danych w podanym zakresie dat.")
+                return None, None, None, None, None
 
-#     if pressures:
-#         plt.subplot(2, 2, 2)
-#         plt.plot(indices, pressures, marker='o', label="Ciśnienie (hPa)", color='blue')
-#         plt.title("Ciśnienie")
-#         plt.xlabel("Pomiar")
-#         plt.ylabel("Ciśnienie (hPa)")
-#         plt.grid(True)
-#         plt.legend()
+        except pymysql.MySQLError as e:
+            print(f"Błąd podczas pobierania danych z bazy: {e}")
+            return None, None, None, None, None
 
-#     if humidities:
-#         plt.subplot(2, 2, 3)
-#         plt.plot(indices, humidities, marker='o', label="Wilgotność (%)", color='green')
-#         plt.title("Wilgotność")
-#         plt.xlabel("Pomiar")
-#         plt.ylabel("Wilgotność (%)")
-#         plt.grid(True)
-#         plt.legend()
-
-#     if light_intensities:
-#         plt.subplot(2, 2, 4)
-#         plt.plot(indices, light_intensities, marker='o', label="Natężenie światła (lux)", color='orange')
-#         plt.title("Natężenie światła")
-#         plt.xlabel("Pomiar")
-#         plt.ylabel("Natężenie światła (lux)")
-#         plt.grid(True)
-#         plt.legend()
-
-#     plt.tight_layout()
-#     plt.show()
-
-
+        finally:
+            if 'connection' in locals() and connection:
+                connection.close()
 
 if __name__ == "__main__":
     sql = SensorDataHandler()
-    # Aktualizacja danych w tablicy
-    sql.update_sensor_data(20, 30, 40, 50)
+    globalsss = Globals()
     
     database_choice = 'test'
-
+    sql.fetch_latest_sensor_data(database_choice)
     sql.insert_sensor_data(database_choice)
+
+    sql.fetch_latest_sensor_data(database_choice)
+    globalsss.sensor_light_intensity = sql.sensor_data["light_intensity"]
+    print(f"{globalsss.sensor_light_intensity}")
+
     # Wysłanie danych do bazy danych
     # insert_sensor_data()

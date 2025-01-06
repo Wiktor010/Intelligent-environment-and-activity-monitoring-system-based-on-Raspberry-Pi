@@ -19,15 +19,16 @@ class Sensors:
         self.globals_instance = Globals()
 
         try:
-            self.bme280 = BME280(i2c_dev = self.i2c_bus)
+            # self.bme280 = BME280(i2c_dev = self.i2c_bus)
+            self.bme280 = None
         except Exception as e:
-            print(f"BME280 module not found on I2C bus")
+            print(f"BME280 module not found on I2C bus: {e}")
             self.bme280 = None
 
         try:
             self.bh1750 = adafruit_bh1750.BH1750(self.i2c_bh)
         except Exception as e:
-            print(f"BH1750 module not found on I2C bus")
+            print(f"BH1750 module not found on I2C bus: {e}")
             self.bh1750 = None
 
     def get_cpu_temperature(self):
@@ -37,7 +38,7 @@ class Sensors:
             output = output.decode()
             return float(output[output.index("=") + 1 : output.rindex("'")])
         except Exception as e:
-            print(f"nie można odczytać temperatury procesora")
+            print(f"nie można odczytać temperatury procesora: {e}")
 
     def read_sensors_data(self):
         # Read values from BME280
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     sensors = Sensors()
     cpu_temp = sensors.get_cpu_temperature()
     print(f"Temperatura CPU: {cpu_temp:.2f}")
-    time.sleep(2)
-    sensors.read_sensors_data()
-    sensors.print_sensors_data()
-    time.sleep(2)
+    while True:
+        sensors.read_sensors_data()
+        sensors.print_sensors_data()
+        time.sleep(2)

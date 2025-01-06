@@ -10,8 +10,4 @@ class Globals:
             cls._instance.sensor_humidity = None
             cls._instance.sensor_pressure = None
             cls._instance.sensor_light_intensity = None
-            cls._instance.db_temperature = None
-            cls._instance.db_humidity = None
-            cls._instance.db_pressure = None
-            cls._instance.db_light_intensity = None
         return cls._instance
