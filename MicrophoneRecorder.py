@@ -16,7 +16,10 @@ class MicrophoneRecorder:
                  format=pyaudio.paInt16, 
                  channels=1, 
                  rate=44100, 
-                 duration=10):
+                 duration=10,
+                 noise_suppression=True, 
+                 sound_boost=True, 
+                 boost_factor=2.0):
         # Inicializacja parametrów nagrywania
         self.filename_prefix = filename_prefix # Prefiks do nazwy pliku -> "nagranie"
         self.chunk = chunk # Ile próbek dzwięku jest czytanych (jednorazowo) -> 1024
@@ -24,6 +27,10 @@ class MicrophoneRecorder:
         self.channels = channels # Liczba kanałów (1 = mono, 2 = stereo)
         self.rate = rate # Częstotliwość próbkowania -> 44100 [Hz]
         self.duration = duration # Czas nagrywania (dostosować do czasu trwania nagrywania z kamery!!)
+        # Inicjalizacja parametrów filtracji
+        self.noise_suppression = noise_suppression # Odcięcie szumów
+        self.sound_boost = sound_boost # Podbicie dzwięku
+        self.boost_factor = boost_factor # Wartość podbicia dzwięku
         # Inicializacja strumienia PyAudio
         self.p = pyaudio.PyAudio() 
         self.stream = None
@@ -34,16 +41,35 @@ class MicrophoneRecorder:
         self.time_stamps = []
         self.start_time = None  # Wyłapywanie momentu rozpoczęcia nagrywania
         self.fig, self.ax = plt.subplots()
-
+    # Definicja przetwarzania dzwięku
+    def butter_bandpass(self, lowcut, highcut, fs, order=5):
+        nyquist = 0.5 * fs
+        low = lowcut / nyquist
+        high = highcut / nyquist
+        b, a = butter(order, [low, high], btype='band')
+        return b, a
+    def bandpass_filter(self, data, lowcut, highcut, fs):
+        b, a = self.butter_bandpass(lowcut, highcut, fs)
+        return filtfilt(b, a, data)
+    def apply_noise_suppression(self, audio_data):
+        if self.noise_suppression:
+            lowcut = 300.0  # Dolna granica odcięcia szumów
+            highcut = 3400.0  # Górna granica odcięcia szumów
+            audio_data = self.bandpass_filter(audio_data, lowcut, highcut, self.rate)
+        return audio_data
+    def apply_sound_boost(self, audio_data):
+        if self.sound_boost:
+            audio_data *= self.boost_factor  # Boost sygnału audio
+        return audio_data
     # Normalizacja amplitudy mocy sygnału audio z formatu pa.Int16 do wartości [-1 1]
     def amplitude_normalization(self, audio_data, ref=32768):
         audio_data = np.frombuffer(audio_data, dtype=np.int16)
         return audio_data / ref
-
     # Rozpoczęcie nagrywania audio z mikrofonu
     def start_recording(self):
         print("Rozpoczecie akwizycji danych z mikrofonu...")
         self.filename = self.generate_filename() # Wygenerowanie nazwy pliku zgodnie z "filename_prefix" tj. nagranie_RR-MM-DD_HH-M-SS.wav
+        self.filtered_filename = self.filename.replace("nagranie", "f_nagranie") # Wygenerowanie nazwy pliku dla dzwięku po filtracji
         # Strumień audio otwarty
         self.stream = self.p.open(format=self.format,
                                   channels=self.channels,
@@ -58,7 +84,6 @@ class MicrophoneRecorder:
         record_thread.start()
         # Wywołanie funkcji rysowania wykresów
         self.start_plotting()
-
     def record_audio(self):
         while self.is_recording:
             try:
@@ -93,7 +118,18 @@ class MicrophoneRecorder:
         print(f"Audio zapisano jako {self.filename}")
         #self.save_live_plot()
         self.plot_data_ready = True # Dane gotowe do plotu
-
+        # Filtracja dzwięku
+        raw_audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
+        filtered_audio_data = self.apply_noise_suppression(raw_audio_data)
+        filtered_audio_data = self.apply_sound_boost(filtered_audio_data)
+        filtered_audio_data = np.clip(filtered_audio_data, -32768, 32767).astype(np.int16)
+        # Zapisanie po filtracji do pliku .wav
+        with wave.open(self.filtered_filename, 'wb') as wf_filtered:
+            wf_filtered.setnchannels(self.channels)
+            wf_filtered.setsampwidth(self.p.get_sample_size(self.format))
+            wf_filtered.setframerate(self.rate)
+            wf_filtered.writeframes(filtered_audio_data.tobytes())
+        print(f"Audio po filtracji zapisano jako {self.filtered_filename}")   
     # Funkcja do zapisywania wykresu audio do pliku
     def save_live_plot(self):
         live_plot_name = self.filename.replace(".wav", "_live_plot.png")
@@ -106,12 +142,10 @@ class MicrophoneRecorder:
         plt.savefig(live_plot_name)
         print(f"Wykres zapisano jako: {live_plot_name}")
         plt.close()
-
     # Rysowanie wykresu
     def start_plotting(self):
         ani = FuncAnimation(self.fig, self.update_plot, interval=100, cache_frame_data=False)
-        plt.show()
-    
+        plt.show()  
     # Aktualizacja wykresu względem nowych danych
     def update_plot(self, frame):
         self.ax.clear()
@@ -126,13 +160,11 @@ class MicrophoneRecorder:
         self.ax.set_ylim([-1.1, 1.1])
         self.ax.grid(True)
         if not self.is_recording:
-            self.ax.set_xlim([self.time_stamps[0], self.time_stamps[-1]])  # Dopasowanie osi czasu dla pełnego zestawu danych
-    
+            self.ax.set_xlim([self.time_stamps[0], self.time_stamps[-1]])  # Dopasowanie osi czasu dla pełnego zestawu danych   
     # Wygenerowanie nazwy pliku zgodnie z datą oraz czasem nagrywania
     def generate_filename(self):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         return f"{self.filename_prefix}_{timestamp}.wav"
-
     # Zatrzymanie strumienia PyAudio
     def stop(self):
         if self.stream is not None:
@@ -140,7 +172,6 @@ class MicrophoneRecorder:
             self.stream.close()
         self.p.terminate()
         print("Strumień audio zatrzymany.")
-
     # Analiza FFT
     def perform_fft_analysis(self):
         print("Analiza FFT nagranego pliku...")
@@ -172,4 +203,3 @@ if __name__ == "__main__":
         recorder.save_live_plot()
     print("Nagrywanie zakończone.")
     recorder.perform_fft_analysis()
-
