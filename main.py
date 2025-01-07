@@ -1,21 +1,29 @@
-# main.py
-
+import threading
 import time
+import tkinter as tk
 from scripts.sensors_handling import Sensors
 from scripts.globals import Globals
 from scripts.sql import SensorDataHandler
+from scripts.MicrophoneRecorder import MicrophoneRecorder
+from scripts.GUI import SensorApp
+
+def run_gui():
+    app = SensorApp(root)
+    root.protocol("WM_DELETE_WINDOW", lambda: (app.camera_display.stop() if app.camera_display else None, root.destroy()))
+    root.mainloop()
 
 if __name__ == "__main__":
-    # read_sensors_data()
-    # print_sensors_data()
-    # # # Wait a few seconds before reading again
-    # update_sensor_data(g.sensor_temperature, g.sensor_pressure, g.sensor_humidity, g.sensor_light_intensity)
-    # insert_sensor_data('test')
-    # time.sleep(5)
-    sql1 = SensorDataHandler()
-    temperatures, pressures, humidities, light_intensities, timestamps = sql1.fetch_all_sensor_data('test')
-    print(timestamps)
-    # last_temperature, last_pressure, last_humidity, last_light_intensit = fetch_latest_sensor_data('test')
-    # temperatures, pressures, humidities, light_intensities = fetch_all_sensor_data('test')
-    # time.sleep(15)
+    # Inicjalizacja komponentów
+    sensors = Sensors()
+    database_handler = SensorDataHandler()
+    
+    # Tworzenie i uruchomienie wątku dla GUI
+    gui_thread = threading.Thread(target=run_gui, daemon=True)
+    gui_thread.start()
+
+    # Pętla główna działająca w wątku głównym
+    while True:
+        sensors.read_sensors_data()
+        database_handler.insert_sensor_data('test')
+        time.sleep(1000)  # Opcjonalny timeout, aby ograniczyć obciążenie CPU
 

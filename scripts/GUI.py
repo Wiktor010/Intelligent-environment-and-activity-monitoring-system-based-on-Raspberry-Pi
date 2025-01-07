@@ -25,6 +25,10 @@ try:
 except ModuleNotFoundError:
     from sensors_handling import Sensors
 
+try:
+    from scripts.MicrophoneRecorder import MicrophoneRecorder
+except ModuleNotFoundError:
+
 class SensorApp:
     def __init__(self, root):
         self.root = root
@@ -36,7 +40,6 @@ class SensorApp:
         self.notebook = ttk.Notebook(root)
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
-        self.tab3 = ttk.Frame(self.notebook)
         self.notebook.add(self.tab1, text = "Dane i Kamera")
         self.notebook.add(self.tab2, text = "Wykresy")
         self.notebook.add(self.tab3, text = "Analiza nagrań audio")
@@ -48,9 +51,6 @@ class SensorApp:
         # Zakładka 2: Wykresy
         self.setup_tab2()
 
-        # Zakładka 3: analiza audio
-        # self.setup_tab3()
-
         self.g = Globals()
 
         # Utwórz instancję klasy kamery
@@ -60,23 +60,11 @@ class SensorApp:
             print(f"Nie można zainicjować kamery: {e}")
             self.camera_display = None  # Ustaw na None, jeśli kamera nie jest dostępna
 
-        # try:
-        #     self.microphone = Microphone()
-        # except Exception as e:
-        #     print(f"Nie znaleziono mikrofonu")
-        #     self.microphone = None
-
         try:
             self.sql_data_handling = SensorDataHandler()
         except Exception as e:
             print(f"Nie można zainicjować klasy bazy danych: {e}")
             self.sql_data_handling = None
-
-        try:
-            self.sensor_handler = Sensors()
-        except Exception as e:
-            print(f"Nie można zainicjować klasy sensorów: {e}")
-            self.sensor_handler = None
 
         # Uruchom aktualizację danych 
         self.update_data()
@@ -147,8 +135,6 @@ class SensorApp:
 
     def update_data(self):
         database_choice = 'test'  # Wybór bazy danych
-        self.sensor_handler.read_sensors_data()
-        self.sql_data_handling.insert_sensor_data(database_choice);
         if self.sql_data_handling:
             self.sql_data_handling.fetch_latest_sensor_data(database_choice)
 
