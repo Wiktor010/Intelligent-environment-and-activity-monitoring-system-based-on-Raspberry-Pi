@@ -145,7 +145,6 @@ class PiCameraDisplay:
         print("Camera stopped.")
 
     def get_processed_frame(self):
-        """Zwraca klatkę z przetwarzaniem (analiza ruchu, śledzenie itp.)."""
         image = self.camera.capture_array()
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         gray_image = cv2.cvtColor(image_rgb, cv2.COLOR_BGR2GRAY)

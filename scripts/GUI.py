@@ -9,7 +9,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 matplotlib.use('TkAgg')  # Backend kompatybilny z Tkinter
 from PIL import Image, ImageTk, ImageDraw
-from stream_5 import PiCameraDisplay
+from camera import PiCameraDisplay
 try:
     from scripts.sql import SensorDataHandler
 except ModuleNotFoundError:
@@ -28,6 +28,7 @@ except ModuleNotFoundError:
 try:
     from scripts.MicrophoneRecorder import MicrophoneRecorder
 except ModuleNotFoundError:
+    from MicrophoneRecorder import MicrophoneRecorder
 
 class SensorApp:
     def __init__(self, root):
@@ -65,6 +66,12 @@ class SensorApp:
         except Exception as e:
             print(f"Nie można zainicjować klasy bazy danych: {e}")
             self.sql_data_handling = None
+
+        try:
+            self.microphone = MicrophoneRecorder()
+        except Exception as e:
+            self.microphone = None
+            print(f"Nie można zainicjować klasy mikrofonu: {e}")
 
         # Uruchom aktualizację danych 
         self.update_data()
