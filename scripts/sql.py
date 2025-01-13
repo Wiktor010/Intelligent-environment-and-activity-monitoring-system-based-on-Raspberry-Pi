@@ -9,10 +9,10 @@ except ModuleNotFoundError:
 databases = {
     'test': {
         'host': 'localhost',
-        'user': 'raspberry',
-        'password': 'testtest',
+        'user': 'root',
+        'password': 'wiktor',
         'port': 3306,
-        'database': 'test_database'
+        'database': 'sensor'
     }
 }
 
