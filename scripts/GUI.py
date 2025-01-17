@@ -7,7 +7,8 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import MaxNLocator
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
-matplotlib.use('TkAgg')  # Backend kompatybilny z Tkinter
+import cv2
+#matplotlib.use('TkAgg')  # Backend kompatybilny z Tkinter
 from PIL import Image, ImageTk, ImageDraw
 from camera import PiCameraDisplay
 try:
@@ -43,7 +44,7 @@ class SensorApp:
         self.tab2 = ttk.Frame(self.notebook)
         self.notebook.add(self.tab1, text = "Dane i Kamera")
         self.notebook.add(self.tab2, text = "Wykresy")
-        self.notebook.add(self.tab3, text = "Analiza nagrań audio")
+        #self.notebook.add(self.tab3, text = "Analiza nagrań audio")
         self.notebook.pack(expand=True, fill="both")
 
         # Zakładka 1: Dane i kamera
@@ -173,11 +174,13 @@ class SensorApp:
         self.update_camera()
 
     def update_camera(self):
+        
         # Sprawdź, czy kamera została poprawnie zainicjalizowana
         if self.camera_display is not None:
             try:
                 frame = self.camera_display.get_processed_frame()
                 if frame is not None:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     img = ImageTk.PhotoImage(Image.fromarray(frame))
                     self.camera_label.imgtk = img
                     self.camera_label.configure(image=img)
