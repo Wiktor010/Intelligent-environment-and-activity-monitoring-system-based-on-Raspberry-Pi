@@ -5,6 +5,7 @@ import time
 import tkinter as tk
 from PIL import Image, ImageTk
 import datetime
+import threading
 
 try:
     from scripts.MicrophoneRecorder import MicrophoneRecorder
@@ -107,7 +108,8 @@ class PiCameraDisplay:
 
                 # JeĹ›li obiekt jest Ĺ›ledzony, uruchamiamy rejestracjÄ™, jeĹ›li nie jest jeszcze uruchomiona
                 if not self.is_recording:
-                    self.start_recording()
+                    recording_thread = threading.Thread(target=self.start_recording)
+                    recording_thread.start()
                     self.is_recording = True
             else:
                 self.loss_time += 1
