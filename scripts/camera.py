@@ -6,10 +6,15 @@ import tkinter as tk
 from PIL import Image, ImageTk
 import datetime
 
+try:
+    from scripts.MicrophoneRecorder import MicrophoneRecorder
+except ModuleNotFoundError:
+    from MicrophoneRecorder import MicrophoneRecorder
 
 class PiCameraDisplay:
     def __init__(self, resolution=(640, 480), framerate=40):
         self.camera = Picamera2()
+        self.micro = MicrophoneRecorder()
 
         # Konfiguracja kamery
         video_config = self.camera.create_video_configuration(main={"size": resolution})
@@ -172,7 +177,24 @@ class PiCameraDisplay:
                 (x, y, w, h) = [int(v) for v in bbox]
                 cv2.rectangle(image_rgb, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(image_rgb, "Person being tracked", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                if not self.is_recording:
+                    self.start_recording()
+                    self.micro.start_recording()
+                    self.is_recording = True
             else:
+                self.loss_time += 1
+                if self.loss_time > self.loss_threshold:
+                    print("Person lost. Reinitializing tracker.")
+                    self.tracking_started = False
+                    self.loss_time = 0
+                    # Ponowna inicjalizacja trackera
+                    self.tracker = cv2.TrackerKCF_create()
+
+                    # Zatrzymanie rejestracji, jeĹ›li byĹ‚a aktywna
+                    if self.is_recording:
+                        self.stop_recording()
+                        self.micro.stop_recording()
+                        self.is_recording = False
                 self.tracking_started = False
                 self.tracker = cv2.TrackerKCF_create()
 
