@@ -108,8 +108,7 @@ class PiCameraDisplay:
 
                 # JeĹ›li obiekt jest Ĺ›ledzony, uruchamiamy rejestracjÄ™, jeĹ›li nie jest jeszcze uruchomiona
                 if not self.is_recording:
-                    recording_thread = threading.Thread(target=self.start_recording)
-                    recording_thread.start()
+                
                     self.is_recording = True
             else:
                 self.loss_time += 1
@@ -180,7 +179,8 @@ class PiCameraDisplay:
                 cv2.rectangle(image_rgb, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(image_rgb, "Person being tracked", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                 if not self.is_recording:
-                    self.start_recording()
+                    recording_thread = threading.Thread(target=self.start_recording)
+                    recording_thread.start()
                     self.micro.start_recording()
                     self.is_recording = True
             else:

@@ -96,9 +96,9 @@ class MicrophoneRecorder:
                 self.time_stamps.extend(
                     np.linspace(elapsed_time - len(normalized_data) / self.rate, elapsed_time, len(normalized_data))
                 )
-                if elapsed_time >= self.duration: # Wywołanie "stop_recording" gdy upłynie czas nagrywania
-                    self.stop_recording()
-                    break
+                # if elapsed_time >= self.duration: # Wywołanie "stop_recording" gdy upłynie czas nagrywania
+                #     self.stop_recording()
+                #     break
             except Exception as e:
                 print(f"Blad nagrywania: {e}")
                 break
