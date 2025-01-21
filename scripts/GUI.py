@@ -10,7 +10,11 @@ import matplotlib
 import cv2
 #matplotlib.use('TkAgg')  # Backend kompatybilny z Tkinter
 from PIL import Image, ImageTk, ImageDraw
-from camera import PiCameraDisplay
+
+try:
+    from camera import PiCameraDisplay
+except ModuleNotFoundError: 
+    from scripts.camera import PiCameraDisplay   
 try:
     from scripts.sql import SensorDataHandler
 except ModuleNotFoundError:
