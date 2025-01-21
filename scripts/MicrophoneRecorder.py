@@ -40,7 +40,7 @@ class MicrophoneRecorder:
         self.audio_data = [] 
         self.time_stamps = []
         self.start_time = None  # Wyłapywanie momentu rozpoczęcia nagrywania
-        self.fig, self.ax = plt.subplots()
+        #self.fig, self.ax = plt.subplots()
     # Definicja przetwarzania dzwięku
     def butter_bandpass(self, lowcut, highcut, fs, order=5):
         nyquist = 0.5 * fs
@@ -65,6 +65,21 @@ class MicrophoneRecorder:
     def amplitude_normalization(self, audio_data, ref=32768):
         audio_data = np.frombuffer(audio_data, dtype=np.int16)
         return audio_data / ref
+    # Wyrysowanie danych i zapis do pliku /uniknięcie konfliktu z GUI
+    def plot_audio_after_recording(self):
+        print(f"Rysowanie wykresu dla nagranego audio...")
+        plt.figure() #figsize=(12, 6)
+        plt.plot(self.time_stamps, self.audio_data)
+        plt.title("Nagranie audio")
+        plt.xlabel("Czas [s]")
+        plt.ylabel("Amplituda")
+        plt.grid(True)
+        # Zapisanie wykresu do pliku
+        plot_filename = self.filename.replace(".wav", "_plot.png")
+        plt.savefig(plot_filename)
+        print(f"Wykres zapisano jako: {plot_filename}")
+        plt.show()
+        plt.close()
     # Rozpoczęcie nagrywania audio z mikrofonu
     def start_recording(self):
         print("Rozpoczecie akwizycji danych z mikrofonu...")
@@ -83,7 +98,7 @@ class MicrophoneRecorder:
         record_thread = threading.Thread(target=self.record_audio)
         record_thread.start()
         # Wywołanie funkcji rysowania wykresów
-        self.start_plotting()
+        #self.start_plotting()
     def record_audio(self):
         while self.is_recording:
             try:
@@ -189,7 +204,8 @@ class MicrophoneRecorder:
         plt.grid(True)
         plt.savefig(fft_plot_name)
         print(f"Wykres analizy FFT zapisano jako {fft_plot_name}")
-        plt.show()   
+        plt.show()  
+        plt.close() 
 
 if __name__ == "__main__":
     FILENAME_PREFIX = "nagranie"
@@ -199,7 +215,8 @@ if __name__ == "__main__":
     recorder.start_recording()
     while recorder.is_recording:
         time.sleep(0.1)
-    if hasattr(recorder, 'plot_data_ready') and recorder.plot_data_ready:
-        recorder.save_live_plot()
+    #if hasattr(recorder, 'plot_data_ready') and recorder.plot_data_ready:
+        #recorder.save_live_plot()
+    recorder.plot_audio_after_recording()
     print("Nagrywanie zakończone.")
     recorder.perform_fft_analysis()
