@@ -19,8 +19,8 @@ class Sensors:
         self.globals_instance = Globals()
 
         try:
-            # self.bme280 = BME280(i2c_dev = self.i2c_bus)
-            self.bme280 = None
+            self.bme280 = BME280(i2c_dev = self.i2c_bus)
+            # self.bme280 = None
         except Exception as e:
             print(f"BME280 module not found on I2C bus: {e}")
             self.bme280 = None
