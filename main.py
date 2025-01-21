@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Pętla główna działająca w wątku głównym
     while True:
         sensors.read_sensors_data()
-        database_handler.update_sensor_data('test')
+        database_handler.update_sensor_data()
         database_handler.insert_sensor_data('test')
-        time.sleep(1000)  # Opcjonalny timeout, aby ograniczyć obciążenie CPU
+        time.sleep(2)  # Opcjonalny timeout, aby ograniczyć obciążenie CPU
 
