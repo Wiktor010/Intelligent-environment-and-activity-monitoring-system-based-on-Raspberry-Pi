@@ -1,4 +1,5 @@
 import pymysql
+import time
 import matplotlib.pyplot as plt
 try:
     from scripts.globals import Globals  # When script is used as module (eg. in main.py file)
@@ -224,12 +225,16 @@ if __name__ == "__main__":
     globalsss = Globals()
     
     database_choice = 'test'
-    sql.fetch_latest_sensor_data(database_choice)
-    sql.insert_sensor_data(database_choice)
+    # sql.fetch_latest_sensor_data(database_choice)
+    # sql.insert_sensor_data(database_choice)
 
-    sql.fetch_latest_sensor_data(database_choice)
-    globalsss.sensor_light_intensity = sql.sensor_data["light_intensity"]
-    print(f"{globalsss.sensor_light_intensity}")
+    # sql.fetch_latest_sensor_data(database_choice)
+    # globalsss.sensor_light_intensity = sql.sensor_data["light_intensity"]
+    # print(f"{globalsss.sensor_light_intensity}")
 
     # Wysłanie danych do bazy danych
-    # insert_sensor_data()
+    while True:
+        sql.update_sensor_data()
+        sql.insert_sensor_data(database_choice)
+        time.sleep(2)
+    
