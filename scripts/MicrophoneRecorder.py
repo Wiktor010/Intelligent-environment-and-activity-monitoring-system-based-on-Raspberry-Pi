@@ -132,6 +132,8 @@ class MicrophoneRecorder:
             wf.writeframes(b''.join(self.frames))
         print(f"Audio zapisano jako {self.filename}")
         #self.save_live_plot()
+        self.plot_audio_after_recording()
+        self.perform_fft_analysis()
         self.plot_data_ready = True # Dane gotowe do plotu
         # Filtracja dzwięku
         raw_audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
