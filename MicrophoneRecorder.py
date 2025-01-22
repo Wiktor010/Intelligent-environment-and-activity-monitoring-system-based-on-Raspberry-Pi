@@ -120,20 +120,35 @@ class MicrophoneRecorder:
         self.plot_data_ready = True # Dane gotowe do plotu
         # Filtracja dzwięku
         raw_audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
-        filtered_audio_data = self.apply_noise_suppression(raw_audio_data)
-        filtered_audio_data = self.apply_sound_boost(filtered_audio_data)
-        filtered_audio_data = np.clip(filtered_audio_data, -32768, 32767).astype(np.int16)
+        self.filtered_audio_data = self.apply_noise_suppression(raw_audio_data)
+        self.filtered_audio_data = self.apply_sound_boost(self.filtered_audio_data)
+        self.filtered_audio_data = np.clip(self.filtered_audio_data, -32768, 32767).astype(np.int16)
         # Zapisanie po filtracji do pliku .wav
         with wave.open(self.filtered_filename, 'wb') as wf_filtered:
             wf_filtered.setnchannels(self.channels)
             wf_filtered.setsampwidth(self.p.get_sample_size(self.format))
             wf_filtered.setframerate(self.rate)
-            wf_filtered.writeframes(filtered_audio_data.tobytes())
-        print(f"Audio po filtracji zapisano jako {self.filtered_filename}")   
+            wf_filtered.writeframes(self.filtered_audio_data.tobytes())
+        print(f"Audio po filtracji zapisano jako {self.filtered_filename}") 
+        #self.save_filtered_plot()
+
+    def save_filtered_plot(self):
+        normalized_filtered_audio_data = self.amplitude_normalization(self.filtered_audio_data)  
+        filtered_plot_name = self.filename.replace(".wav", "_filtered_plot.png")
+        plt.figure()
+        plt.plot(self.time_stamps, normalized_filtered_audio_data)
+        plt.title("Audio po filracji")
+        plt.xlabel("Czas [s]")
+        plt.ylabel("Amplituda")
+        plt.grid(True)
+        plt.savefig(filtered_plot_name)
+        print(f"Wykres po filtracji zapisano jako: {filtered_plot_name}")
+        plt.show()
+        plt.close()
     # Funkcja do zapisywania wykresu audio do pliku
     def save_live_plot(self):
         live_plot_name = self.filename.replace(".wav", "_live_plot.png")
-        plt.figure(figsize=(12, 6))
+        plt.figure()
         plt.plot(self.time_stamps, self.audio_data)
         plt.title("Nagranie audio")
         plt.xlabel("Czas [s]")
@@ -145,7 +160,9 @@ class MicrophoneRecorder:
     # Rysowanie wykresu
     def start_plotting(self):
         ani = FuncAnimation(self.fig, self.update_plot, interval=100, cache_frame_data=False)
-        plt.show()  
+        plt.show() 
+        if not self.is_recording:  # Po zamknięciu wykresu GUI, zakończ nagrywanie
+            self.stop_recording() 
     # Aktualizacja wykresu względem nowych danych
     def update_plot(self, frame):
         self.ax.clear()
@@ -202,4 +219,5 @@ if __name__ == "__main__":
     if hasattr(recorder, 'plot_data_ready') and recorder.plot_data_ready:
         recorder.save_live_plot()
     print("Nagrywanie zakończone.")
+    recorder.save_filtered_plot()
     recorder.perform_fft_analysis()
