@@ -156,12 +156,12 @@ class SensorApp:
         self.tab3_frame.pack(expand=True, fill="both", padx=10, pady=10)
 
         # Wykresy w dwóch rzędach po dwa (poniżej dat i przycisku)
-        self.plot_frame = tk.Frame(self.tab3_frame)
-        self.plot_frame.pack(expand=True, fill="both")
+        self.plot_frame1 = tk.Frame(self.tab3_frame)
+        self.plot_frame1.pack(expand=True, fill="both")
 
-        self.figure, self.axs = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'hspace': 0.5, 'wspace': 0.3})
-        self.figure.tight_layout()
-        self.canvas = FigureCanvasTkAgg(self.figure, self.plot_frame)
+        self.figure1, self.axs1 = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'hspace': 0.5, 'wspace': 0.3})
+        self.figure1.tight_layout()
+        self.canvas = FigureCanvasTkAgg(self.figure1, self.plot_frame1)
         self.canvas.get_tk_widget().pack(expand=True, fill="both")
 
 
@@ -237,6 +237,37 @@ class SensorApp:
         except Exception as e:
             print(f"Błąd podczas aktualizacji wykresów: {e}")
 
+    def plot_microphone_data(self, timestamps, data1, data2):
+        # Indeksy pomiarów
+        indices1 = list(range(1,len(data1)+1))
+        indices2 = list(range(1,len(data2)+1))
+        # Czyszczenie istniejących wykresów
+        for ax in self.axs1.flatten():
+            ax.clear()
+
+        self.axs1[0,0].plot(timestamps, data1, marker = 'o', label = "", color = 'red')
+        self.axs1[0,0].set_title("")
+        self.axs1[0,0].grid(True)
+        self.axs1[0,0].set_xlabel("Timestamp")
+        self.axs1[0,0].set_ylabel("Amplituda")
+        self.axs1[0,0].xaxis.set_major_locator(MaxNLocator(5))
+
+        self.axs1[0,1].plot(timestamps, data2, marker = 'o', label = "", color = 'red')
+        self.axs1[0,1].set_title("")
+        self.axs1[0,1].grid(True)
+        self.axs1[0,1].set_xlabel("Timestamp")
+        self.axs1[0,1].set_ylabel("Amplituda")
+        self.axs1[0,1].xaxis.set_major_locator(MaxNLocator(5))
+        # date_format = mdates.DateFormatter('%m-%d %H:%M:%S')  # Format dnia i godziny
+        # self.axs[0, 0].xaxis.set_major_formatter(date_format)
+
+        # Formatowanie etykiet osi X (obrót o 45 stopni, aby były czytelne)
+        for ax in self.axs.flatten():
+            ax.tick_params(axis='x', rotation=45)  # Obrót etykiet osi X o 45°
+
+        # Rysowanie wykresów na canvasie
+        self.canvas.draw()
+        
     def plot_sensor_data(self, timestamps, temperatures, pressures, humidities, light_intensities):
         # Indeksy pomiarów
         indices = list(range(1, len(temperatures) + 1))
