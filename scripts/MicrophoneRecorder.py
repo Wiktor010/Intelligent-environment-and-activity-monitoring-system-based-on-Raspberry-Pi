@@ -38,7 +38,12 @@ class MicrophoneRecorder:
         self.is_recording = False
         # Inicializacja ustawień wykresu
         self.audio_data = [] 
+        self.filtered_audio_data = []
+        self.normalized_filtered_audio_data = []
         self.time_stamps = []
+        self.fft_freq = []
+        self.fft_amp = []
+        self.after_record = False
         self.start_time = None  # Wyłapywanie momentu rozpoczęcia nagrywania
         #self.fig, self.ax = plt.subplots()
     # Definicja przetwarzania dzwięku
@@ -66,23 +71,29 @@ class MicrophoneRecorder:
         audio_data = np.frombuffer(audio_data, dtype=np.int16)
         return audio_data / ref
     # Wyrysowanie danych i zapis do pliku /uniknięcie konfliktu z GUI
-    def plot_audio_after_recording(self):
-        print(f"Rysowanie wykresu dla nagranego audio...")
-        plt.figure() #figsize=(12, 6)
-        plt.plot(self.time_stamps, self.audio_data)
-        plt.title("Nagranie audio")
-        plt.xlabel("Czas [s]")
-        plt.ylabel("Amplituda")
-        plt.grid(True)
-        # Zapisanie wykresu do pliku
-        plot_filename = self.filename.replace(".wav", "_plot.png")
-        plt.savefig(plot_filename)
-        print(f"Wykres zapisano jako: {plot_filename}")
-        plt.show()
-        plt.close()
+    # def plot_audio_after_recording(self):
+    #     print(f"Rysowanie wykresu dla nagranego audio...")
+    #     plt.figure() #figsize=(12, 6)
+    #     plt.plot(self.time_stamps, self.audio_data)
+    #     plt.title("Nagranie audio")
+    #     plt.xlabel("Czas [s]")
+    #     plt.ylabel("Amplituda")
+    #     plt.grid(True)
+    #     # Zapisanie wykresu do pliku
+    #     plot_filename = self.filename.replace(".wav", "_plot.png")
+    #     plt.savefig(plot_filename)
+    #     print(f"Wykres zapisano jako: {plot_filename}")
+    #     plt.show()
+    #     plt.close()
     # Rozpoczęcie nagrywania audio z mikrofonu
     def start_recording(self):
         print("Rozpoczecie akwizycji danych z mikrofonu...")
+        self.audio_data = [] 
+        self.filtered_audio_data = []
+        self.normalized_filtered_audio_data = []
+        self.time_stamps = []
+        self.fft_freq = []
+        self.fft_amp = []
         self.filename = self.generate_filename() # Wygenerowanie nazwy pliku zgodnie z "filename_prefix" tj. nagranie_RR-MM-DD_HH-M-SS.wav
         self.filtered_filename = self.filename.replace("nagranie", "f_nagranie") # Wygenerowanie nazwy pliku dla dzwięku po filtracji
         # Strumień audio otwarty
@@ -132,14 +143,20 @@ class MicrophoneRecorder:
             wf.writeframes(b''.join(self.frames))
         print(f"Audio zapisano jako {self.filename}")
         #self.save_live_plot()
-        self.plot_audio_after_recording()
-        self.perform_fft_analysis()
-        self.plot_data_ready = True # Dane gotowe do plotu
+        #self.plot_audio_after_recording()
+        #self.perform_fft_analysis()
+        #self.plot_data_ready = True # Dane gotowe do plotu
         # Filtracja dzwięku
         raw_audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
         self.filtered_audio_data = self.apply_noise_suppression(raw_audio_data)
         self.filtered_audio_data = self.apply_sound_boost(self.filtered_audio_data)
         self.filtered_audio_data = np.clip(self.filtered_audio_data, -32768, 32767).astype(np.int16)
+        self.normalized_filtered_audio_data = self.amplitude_normalization(self.filtered_audio_data)
+        # FFT
+        f = np.fft.rfftfreq(len(self.normalized_filtered_audio_data), 1 / self.rate)
+        power2db = 20 * np.log10(np.abs(np.fft.rfft(self.normalized_filtered_audio_data))) # Moc w dB
+        self.fft_freq = f[0:len(self.normalized_filtered_audio_data)//2]/1e3
+        self.fft_amp = power2db[0:len(power2db)-1]
         # Zapisanie po filtracji do pliku .wav
         with wave.open(self.filtered_filename, 'wb') as wf_filtered:
             wf_filtered.setnchannels(self.channels)
@@ -147,50 +164,51 @@ class MicrophoneRecorder:
             wf_filtered.setframerate(self.rate)
             wf_filtered.writeframes(self.filtered_audio_data.tobytes())
         print(f"Audio po filtracji zapisano jako {self.filtered_filename}")   
+        self.after_record = True
     # Funkcja do zapisywania wykresu audio do pliku
-    def save_live_plot(self):
-        live_plot_name = self.filename.replace(".wav", "_live_plot.png")
-        plt.figure(figsize=(12, 6))
-        plt.plot(self.time_stamps, self.audio_data)
-        plt.title("Nagranie audio")
-        plt.xlabel("Czas [s]")
-        plt.ylabel("Amplituda")
-        plt.grid(True)
-        plt.savefig(live_plot_name)
-        print(f"Wykres zapisano jako: {live_plot_name}")
-        plt.close()
-    def save_filtered_plot(self):
-        normalized_filtered_audio_data = self.amplitude_normalization(self.filtered_audio_data)  
-        filtered_plot_name = self.filename.replace(".wav", "_filtered_plot.png")
-        plt.figure()
-        plt.plot(self.time_stamps, normalized_filtered_audio_data)
-        plt.title("Audio po filracji")
-        plt.xlabel("Czas [s]")
-        plt.ylabel("Amplituda")
-        plt.grid(True)
-        plt.savefig(filtered_plot_name)
-        print(f"Wykres po filtracji zapisano jako: {filtered_plot_name}")
-        plt.show()
-        plt.close()
+    # def save_live_plot(self):
+    #     live_plot_name = self.filename.replace(".wav", "_live_plot.png")
+    #     plt.figure(figsize=(12, 6))
+    #     plt.plot(self.time_stamps, self.audio_data)
+    #     plt.title("Nagranie audio")
+    #     plt.xlabel("Czas [s]")
+    #     plt.ylabel("Amplituda")
+    #     plt.grid(True)
+    #     plt.savefig(live_plot_name)
+    #     print(f"Wykres zapisano jako: {live_plot_name}")
+    #     plt.close()
+    # def save_filtered_plot(self):
+    #     normalized_filtered_audio_data = self.amplitude_normalization(self.filtered_audio_data)  
+    #     filtered_plot_name = self.filename.replace(".wav", "_filtered_plot.png")
+    #     plt.figure()
+    #     plt.plot(self.time_stamps, normalized_filtered_audio_data)
+    #     plt.title("Audio po filracji")
+    #     plt.xlabel("Czas [s]")
+    #     plt.ylabel("Amplituda")
+    #     plt.grid(True)
+    #     plt.savefig(filtered_plot_name)
+    #     print(f"Wykres po filtracji zapisano jako: {filtered_plot_name}")
+    #     plt.show()
+    #     plt.close()
     # Rysowanie wykresu
-    def start_plotting(self):
-        ani = FuncAnimation(self.fig, self.update_plot, interval=100, cache_frame_data=False)
-        plt.show()  
-    # Aktualizacja wykresu względem nowych danych
-    def update_plot(self, frame):
-        self.ax.clear()
-        if self.is_recording: # Jeśli nagrywanie trwa, pokaż jedynie ostatnią sekundę 
-            self.ax.plot(self.time_stamps[-self.rate:], self.audio_data[-self.rate:])
-        else: # Jeśli nagrywanie się zakończyło, wyświetl wykres dla całego nagrania
-            self.ax.plot(self.time_stamps, self.audio_data)
-        # Edycja wykresu
-        self.ax.set_title("Nagrywanie audio...")
-        self.ax.set_xlabel("Czas [s]")
-        self.ax.set_ylabel("Amplituda")
-        self.ax.set_ylim([-1.1, 1.1])
-        self.ax.grid(True)
-        if not self.is_recording:
-            self.ax.set_xlim([self.time_stamps[0], self.time_stamps[-1]])  # Dopasowanie osi czasu dla pełnego zestawu danych   
+    # def start_plotting(self):
+    #     ani = FuncAnimation(self.fig, self.update_plot, interval=100, cache_frame_data=False)
+    #     plt.show()  
+    # # Aktualizacja wykresu względem nowych danych
+    # def update_plot(self, frame):
+    #     self.ax.clear()
+    #     if self.is_recording: # Jeśli nagrywanie trwa, pokaż jedynie ostatnią sekundę 
+    #         self.ax.plot(self.time_stamps[-self.rate:], self.audio_data[-self.rate:])
+    #     else: # Jeśli nagrywanie się zakończyło, wyświetl wykres dla całego nagrania
+    #         self.ax.plot(self.time_stamps, self.audio_data)
+    #     # Edycja wykresu
+    #     self.ax.set_title("Nagrywanie audio...")
+    #     self.ax.set_xlabel("Czas [s]")
+    #     self.ax.set_ylabel("Amplituda")
+    #     self.ax.set_ylim([-1.1, 1.1])
+    #     self.ax.grid(True)
+    #     if not self.is_recording:
+    #         self.ax.set_xlim([self.time_stamps[0], self.time_stamps[-1]])  # Dopasowanie osi czasu dla pełnego zestawu danych   
     # Wygenerowanie nazwy pliku zgodnie z datą oraz czasem nagrywania
     def generate_filename(self):
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -203,24 +221,26 @@ class MicrophoneRecorder:
         self.p.terminate()
         print("Strumień audio zatrzymany.")
     # Analiza FFT
-    def perform_fft_analysis(self):
-        print("Analiza FFT nagranego pliku...")
-        audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
-        normalized_data = self.amplitude_normalization(audio_data)
-        f = np.fft.rfftfreq(len(normalized_data), 1 / self.rate)
-        power2db = 20 * np.log10(np.abs(np.fft.rfft(normalized_data))) # Moc w dB
-        fft_plot_name = self.filename.replace(".wav", "_fft_plot.png")
-        plt.figure()
-        plt.plot(f[0:len(normalized_data)//2]/1e3,power2db[0:len(power2db)-1])
-        plt.xlim([0, ((f[0:len(normalized_data)//2])[-1]) / 1e3])
-        plt.title("Analiza FFT nagranego audio")
-        plt.xlabel("Częstotliwość [kHz]")
-        plt.ylabel("Amplituda [dB]")
-        plt.grid(True)
-        plt.savefig(fft_plot_name)
-        print(f"Wykres analizy FFT zapisano jako {fft_plot_name}")
-        plt.show()  
-        plt.close() 
+    # def perform_fft_analysis(self):
+    #     print("Analiza FFT nagranego pliku...")
+    #     audio_data = np.frombuffer(b''.join(self.frames), dtype=np.int16)
+    #     normalized_data = self.amplitude_normalization(audio_data)
+    #     f = np.fft.rfftfreq(len(normalized_data), 1 / self.rate)
+    #     power2db = 20 * np.log10(np.abs(np.fft.rfft(normalized_data))) # Moc w dB
+    #     self.fft_freq = f[0:len(normalized_data)//2]/1e3
+    #     self.fft_amp = power2db[0:len(power2db)-1]
+        # fft_plot_name = self.filename.replace(".wav", "_fft_plot.png")
+        # plt.figure()
+        # plt.plot(f[0:len(normalized_data)//2]/1e3,power2db[0:len(power2db)-1])
+        # plt.xlim([0, ((f[0:len(normalized_data)//2])[-1]) / 1e3])
+        # plt.title("Analiza FFT nagranego audio")
+        # plt.xlabel("Częstotliwość [kHz]")
+        # plt.ylabel("Amplituda [dB]")
+        # plt.grid(True)
+        # plt.savefig(fft_plot_name)
+        # print(f"Wykres analizy FFT zapisano jako {fft_plot_name}")
+        # plt.show()  
+        # plt.close() 
 
 if __name__ == "__main__":
     FILENAME_PREFIX = "nagranie"
