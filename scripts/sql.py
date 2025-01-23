@@ -35,18 +35,18 @@ class SensorDataHandler:
         self.sensor_data["pressure"] = self.global_instance.sensor_pressure
         self.sensor_data["humidity"] = self.global_instance.sensor_humidity
         self.sensor_data["light_intensity"] = self.global_instance.sensor_light_intensity
-        print(f"Dane w tablicy zostały zaktualizowane:")
-        for key, value in self.sensor_data.items():
-            if value is not None:
-                print(f"{key}: {value}")
-        print("-" * 30)
+        #print(f"Dane w tablicy zostały zaktualizowane:")
+        # for key, value in self.sensor_data.items():
+        #     if value is not None:
+        #         print(f"{key}: {value}")
+        # print("-" * 30)
 
     def insert_sensor_data(self, database_choice):
         global databases
         # Get database configuration
         self.db_config = databases.get(database_choice)
         if self.db_config is None:
-            print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
+            #print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
             return
 
         try:
@@ -78,8 +78,8 @@ class SensorDataHandler:
 
             # Commit changes
             connection.commit()
-            print("Dane zostały pomyślnie przesłane do bazy danych.")
-            print("-" * 30)
+            # print("Dane zostały pomyślnie przesłane do bazy danych.")
+            # print("-" * 30)
 
         except pymysql.MySQLError as e:
             print(f"Błąd podczas połączenia lub zapisu do bazy danych: {e}")
@@ -115,10 +115,10 @@ class SensorDataHandler:
                 self.sensor_data["pressure"] = latest_row[1]
                 self.sensor_data["humidity"] = latest_row[2]
                 self.sensor_data["light_intensity"] = latest_row[3]
-                print("Najnowsze dane z bazy zostały zapisane w obiekcie:")
-                for key, value in self.sensor_data.items():
-                    if value is not None:
-                        print(f"{key}: {value}")
+                # print("Najnowsze dane z bazy zostały zapisane w obiekcie:")
+                # for key, value in self.sensor_data.items():
+                #     if value is not None:
+                #         print(f"{key}: {value}")
 
             else:
                 print("Brak danych w tabeli.")
@@ -134,7 +134,7 @@ class SensorDataHandler:
         global databases
         self.db_config = databases.get(database_choice)
         if self.db_config is None:
-            print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
+            #print(f"Błąd: Brak konfiguracji dla bazy o nazwie '{database_choice}'")
             return None, None, None, None, None
 
         try:
@@ -158,15 +158,15 @@ class SensorDataHandler:
                 light_intensities = [row[3] for row in rows]
                 timestamps = [row[4] for row in rows]
 
-                print("Dane zostały pomyślnie pobrane z bazy danych.")
+                #print("Dane zostały pomyślnie pobrane z bazy danych.")
                 return temperatures, pressures, humidities, light_intensities, timestamps
 
             else:
-                print("Brak danych w tabeli.")
+                #rint("Brak danych w tabeli.")
                 return None, None, None, None, None
 
         except pymysql.MySQLError as e:
-            print(f"Błąd podczas pobierania danych z bazy: {e}")
+            #print(f"Błąd podczas pobierania danych z bazy: {e}")
             return None, None, None, None, None
 
         finally:
@@ -205,7 +205,7 @@ class SensorDataHandler:
                 light_intensities = [row[3] for row in rows]
                 timestamps = [row[4] for row in rows]
 
-                print("Dane zostały pomyślnie pobrane z bazy danych.")
+                # print("Dane zostały pomyślnie pobrane z bazy danych.")
                 return temperatures, pressures, humidities, light_intensities, timestamps
 
             else:

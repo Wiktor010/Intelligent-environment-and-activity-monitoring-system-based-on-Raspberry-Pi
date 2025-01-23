@@ -1,30 +1,72 @@
 import cv2
-from picamera2 import Picamera2
-from PIL import Image, ImageTk
-import time
 
-class PiCameraDisplay:
-    def __init__(self, resolution=(640, 480), framerate=40):
-        self.camera = Picamera2()
-        video_config = self.camera.create_video_configuration(main={"size": resolution})
-        self.camera.configure(video_config)
-        self.camera.set_controls({"FrameRate": framerate})
-        self.camera.start()
-        time.sleep(0.1)  # Czas na rozruch kamery
+# Tworzenie obiektu do odejmowania tła
+bg_subtractor = cv2.createBackgroundSubtractorMOG2(history=500, varThreshold=30)
 
-    def get_processed_frame(self):
-        """Pobiera klatkę, przetwarza ją (detekcja krawędzi) i zwraca."""
-        image = self.camera.capture_array()
-        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(gray_image, 100, 200)  # Detekcja krawędzi
-        return edges
+# Wczytaj wideo
+cap = cv2.VideoCapture('/home/pi/Intelligent-environment-and-activity-monitoring-system-based-on-Raspberry-Pi/recording_2025-01-19_15-01-43.mp4')
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
 
-    def stop(self):
-        """Zatrzymuje kamerę."""
-        self.camera.close()
-        
-if __name__ == "__main__":
-    # Tworzenie obiektu klasy PiCameraDisplay i uruchomienie wyświetlania
-    camera_display = PiCameraDisplay()
-    camera_display.display_feed()
-    camera_display.stop()
+    # Zastosowanie odejmowania tłaS
+    fg_mask = bg_subtractor.apply(frame)
+
+    # Wyświetlanie wyniku
+    cv2.imshow('Frame', frame)
+    cv2.imshow('Foreground Mask', fg_mask)
+
+    if cv2.waitKey(150) & 0xFF == 27:  # Naciśnij ESC, aby wyjść
+        break
+
+cap.release()
+cv2.destroyAllWindows()
+
+# import tkinter as tk
+# from tkinter import Label
+# from PIL import Image, ImageTk
+# from picamera2 import Picamera2
+# import numpy as np
+
+# class CameraApp:
+#     def __init__(self, window, window_title):
+#         self.window = window
+#         self.window.title(window_title)
+
+#         # Inicjalizacja kamery
+#         self.camera = Picamera2()
+#         config = self.camera.create_preview_configuration(main={"size": (640, 480), "format": "RGB888"})
+#         self.camera.configure(config)
+#         self.camera.start()
+
+#         # Tworzenie etykiety do wyświetlania obrazu
+#         self.vid = Label(window)
+#         self.vid.pack()
+
+#         # Uruchamianie aktualizacji obrazu
+#         self.update()
+
+#         self.window.mainloop()
+
+#     def update(self):
+#         # Pobieranie obrazu z kamery
+#         frame = self.camera.capture_array()
+
+#         # Konwersja obrazu do formatu RGB
+#         img = Image.fromarray(frame)
+#         imgtk = ImageTk.PhotoImage(image=img)
+#         self.vid.imgtk = imgtk
+#         self.vid.configure(image=imgtk)
+
+#         # Aktualizacja obrazu co 10 ms
+#         self.window.after(10, self.update)
+
+#     def __del__(self):
+#         if self.camera.running:
+#             self.camera.stop()
+
+# # Uruchamianie aplikacji
+# root = tk.Tk()
+# app = CameraApp(root, "Camera Feed")
+

@@ -108,7 +108,7 @@ class PiCameraDisplay:
 
                 # JeĹ›li obiekt jest Ĺ›ledzony, uruchamiamy rejestracjÄ™, jeĹ›li nie jest jeszcze uruchomiona
                 if not self.is_recording:
-                
+                  
                     self.is_recording = True
             else:
                 self.loss_time += 1
@@ -175,6 +175,7 @@ class PiCameraDisplay:
         if self.tracking_started:
             success, bbox = self.tracker.update(image_rgb)
             if success:
+                self.loss_time = 0
                 (x, y, w, h) = [int(v) for v in bbox]
                 cv2.rectangle(image_rgb, (x, y), (x + w, y + h), (0, 255, 0), 2)
                 cv2.putText(image_rgb, "Person being tracked", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
@@ -197,8 +198,8 @@ class PiCameraDisplay:
                         self.stop_recording()
                         self.micro.stop_recording()
                         self.is_recording = False
-                self.tracking_started = False
-                self.tracker = cv2.TrackerKCF_create()
+                #self.tracking_started = False
+                #self.tracker = cv2.TrackerKCF_create()
 
         return image_rgb
     

@@ -167,7 +167,7 @@ class SensorApp:
         self.plot_frame1.pack(expand=True, fill="both")
 
         self.figure1, self.axs1 = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'hspace': 0.5, 'wspace': 0.3})
-        self.figure1.tight_layout()
+        #self.figure1.tight_layout()
         self.canvas = FigureCanvasTkAgg(self.figure1, self.plot_frame1)
         self.canvas.get_tk_widget().pack(expand=True, fill="both")
 
@@ -286,7 +286,7 @@ class SensorApp:
             self.fft_amp = self.camera_display.get_fft_amp
             self.plot_microphone_data(self.time_stamps, self.fft_freq, self.normalized_filtered_audio_data, self.fft_amp)
             self.camera_display.set_after_record()
-            
+            print("BANIA")
         self.root.after(1000, self.check_to_update_plots)
 
 

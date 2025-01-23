@@ -152,6 +152,7 @@ class MicrophoneRecorder:
         self.filtered_audio_data = self.apply_sound_boost(self.filtered_audio_data)
         self.filtered_audio_data = np.clip(self.filtered_audio_data, -32768, 32767).astype(np.int16)
         self.normalized_filtered_audio_data = self.amplitude_normalization(self.filtered_audio_data)
+    
         # FFT
         f = np.fft.rfftfreq(len(self.normalized_filtered_audio_data), 1 / self.rate)
         power2db = 20 * np.log10(np.abs(np.fft.rfft(self.normalized_filtered_audio_data))) # Moc w dB
@@ -252,7 +253,7 @@ if __name__ == "__main__":
         time.sleep(0.1)
     #if hasattr(recorder, 'plot_data_ready') and recorder.plot_data_ready:
         #recorder.save_live_plot()
-    recorder.plot_audio_after_recording()
-    print("Nagrywanie zakończone.")
-    recorder.save_filtered_plot()
-    recorder.perform_fft_analysis()
+    #recorder.plot_audio_after_recording()
+    #print("Nagrywanie zakończone.")
+    #recorder.save_filtered_plot()
+    #recorder.perform_fft_analysis()
