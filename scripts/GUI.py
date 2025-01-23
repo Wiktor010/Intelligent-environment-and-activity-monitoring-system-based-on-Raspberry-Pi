@@ -53,6 +53,12 @@ class SensorApp:
         self.notebook.add(self.tab3, text = "Analiza nagrań audio")
         self.notebook.pack(expand=True, fill="both")
 
+        self.normalized_filtered_audio_data = []
+        self.time_stamps = []
+        self.fft_freq = []
+        self.fft_amp = []
+        self.after_record = False
+
         # Zakładka 1: Dane i kamera
         self.setup_tab1()
 
@@ -86,6 +92,7 @@ class SensorApp:
         # Uruchom aktualizację danych 
         self.update_data()
         self.start_camera()
+        self.check_to_update_plots()
 
     def setup_tab1(self):
         self.data_frame = tk.Frame(self.tab1)
@@ -237,7 +244,7 @@ class SensorApp:
         except Exception as e:
             print(f"Błąd podczas aktualizacji wykresów: {e}")
 
-    def plot_microphone_data(self, timestamps, data1, data2):
+    def plot_microphone_data(self, timestamps1, timestamps2, data1, data2):
         # Indeksy pomiarów
         indices1 = list(range(1,len(data1)+1))
         indices2 = list(range(1,len(data2)+1))
@@ -245,19 +252,20 @@ class SensorApp:
         for ax in self.axs1.flatten():
             ax.clear()
 
-        self.axs1[0,0].plot(timestamps, data1, marker = 'o', label = "", color = 'red')
+        self.axs1[0,0].plot(timestamps1, data1, marker = 'o', label = "", color = 'red')
         self.axs1[0,0].set_title("")
         self.axs1[0,0].grid(True)
-        self.axs1[0,0].set_xlabel("Timestamp")
+        self.axs1[0,0].set_xlabel("Timestamp [s]")
         self.axs1[0,0].set_ylabel("Amplituda")
         self.axs1[0,0].xaxis.set_major_locator(MaxNLocator(5))
 
-        self.axs1[0,1].plot(timestamps, data2, marker = 'o', label = "", color = 'red')
+        self.axs1[0,1].plot(timestamps2, data2, marker = 'o', label = "", color = 'red')
         self.axs1[0,1].set_title("")
         self.axs1[0,1].grid(True)
-        self.axs1[0,1].set_xlabel("Timestamp")
-        self.axs1[0,1].set_ylabel("Amplituda")
+        self.axs1[0,1].set_xlabel("Częstotliwość [kHz]")
+        self.axs1[0,1].set_ylabel("Amplituda [dB]")
         self.axs1[0,1].xaxis.set_major_locator(MaxNLocator(5))
+
         # date_format = mdates.DateFormatter('%m-%d %H:%M:%S')  # Format dnia i godziny
         # self.axs[0, 0].xaxis.set_major_formatter(date_format)
 
@@ -269,7 +277,17 @@ class SensorApp:
         self.canvas.draw()
     
     def check_to_update_plots(self):
-        None 
+        self.after_record = self.camera_display.get_after_record
+
+        if self.after_record == True:
+            self.normalized_filtered_audio_data = self.camera_display.get_normalized_filtered_audio_data
+            self.time_stamps = self.camera_display.get_timestamp
+            self.fft_freq = self.camera_display.get_fft_freq
+            self.fft_amp = self.camera_display.get_fft_amp
+            self.plot_microphone_data(self.time_stamps, self.fft_freq, self.normalized_filtered_audio_data, self.fft_amp)
+            self.camera_display.set_after_record()
+            
+        self.root.after(1000, self.check_to_update_plots)
 
 
 

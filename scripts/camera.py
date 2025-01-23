@@ -201,3 +201,21 @@ class PiCameraDisplay:
                 self.tracker = cv2.TrackerKCF_create()
 
         return image_rgb
+    
+    def get_timestamp(self):
+        return self.micro.time_stamps
+    
+    def get_normalized_filtered_audio_data(self):
+        return self.micro.normalized_filtered_audio_data
+    
+    def get_fft_freq(self):
+        return self.micro.fft_freq
+    
+    def get_fft_amp(self):
+        return self.micro.fft_amp
+    
+    def get_after_record(self):
+        return self.micro.after_record
+    
+    def set_after_record(self):
+        self.micro.after_record = False
