@@ -267,7 +267,12 @@ class SensorApp:
 
         # Rysowanie wykresów na canvasie
         self.canvas.draw()
-        
+    
+    def check_to_update_plots(self):
+        None 
+
+
+
     def plot_sensor_data(self, timestamps, temperatures, pressures, humidities, light_intensities):
         # Indeksy pomiarów
         indices = list(range(1, len(temperatures) + 1))
