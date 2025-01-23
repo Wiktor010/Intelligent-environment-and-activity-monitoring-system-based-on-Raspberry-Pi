@@ -46,9 +46,11 @@ class SensorApp:
         self.notebook = ttk.Notebook(root)
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
+        self.tab3 = ttk.Frame(self.notebook)
+
         self.notebook.add(self.tab1, text = "Dane i Kamera")
         self.notebook.add(self.tab2, text = "Wykresy")
-        #self.notebook.add(self.tab3, text = "Analiza nagrań audio")
+        self.notebook.add(self.tab3, text = "Analiza nagrań audio")
         self.notebook.pack(expand=True, fill="both")
 
         # Zakładka 1: Dane i kamera
@@ -56,6 +58,9 @@ class SensorApp:
 
         # Zakładka 2: Wykresy
         self.setup_tab2()
+
+        # Zakładka 3: Analiza nagrań audio
+        self.setup_tab3()
 
         self.g = Globals()
 
@@ -140,6 +145,21 @@ class SensorApp:
         self.plot_frame.pack(expand=True, fill="both")
 
         self.figure, self.axs = plt.subplots(2, 2, figsize=(14, 10), gridspec_kw={'hspace': 0.5, 'wspace': 0.3})
+        self.figure.tight_layout()
+        self.canvas = FigureCanvasTkAgg(self.figure, self.plot_frame)
+        self.canvas.get_tk_widget().pack(expand=True, fill="both")
+
+
+    def setup_tab3(self):
+        # Ustawienia kontenera dla wszystkich elementów
+        self.tab3_frame = tk.Frame(self.tab3)
+        self.tab3_frame.pack(expand=True, fill="both", padx=10, pady=10)
+
+        # Wykresy w dwóch rzędach po dwa (poniżej dat i przycisku)
+        self.plot_frame = tk.Frame(self.tab3_frame)
+        self.plot_frame.pack(expand=True, fill="both")
+
+        self.figure, self.axs = plt.subplots(1, 2, figsize=(14, 10), gridspec_kw={'hspace': 0.5, 'wspace': 0.3})
         self.figure.tight_layout()
         self.canvas = FigureCanvasTkAgg(self.figure, self.plot_frame)
         self.canvas.get_tk_widget().pack(expand=True, fill="both")
